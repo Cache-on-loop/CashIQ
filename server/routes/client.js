@@ -1,6 +1,6 @@
 import express from "express";
 import { getProducts, getCustomers, getGeography } from "../controllers/client.js";
-import { getTransactions, addTransactions, searchTransactionsByField, updateTransactions, updateCategoryTransactions, getTotalAmountByCategory } from "../controllers/transaction.js";
+import { getTransactions, addTransactions, searchTransactionsByField, updateTransactions, updateCategoryTransactions, getSummary } from "../controllers/transaction.js";
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.get("/transactions/search/:userId", searchTransactionsByField)
 router.post("/transactions/add", addTransactions);
 router.post("/transactions/update/:transactionId", updateTransactions);
 router.post("/transactions/category/:transactionId", updateCategoryTransactions);
-router.get("/transactions/total/:userId", getTotalAmountByCategory)
+router.get("/transactions/breakdown/:userId", getSummary)
 
 router.get("/geography", getGeography);
 export default router;
