@@ -138,3 +138,21 @@ export const updateCategoryTransactions = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+export const searchTransaction = async (req, res) => {
+  try {
+    const { field, value } = req.query;
+
+    // Construct the query based on the provided field and value
+    const query = {};
+    query[field] = { $regex: new RegExp(value, "i") };
+
+    // Search for transactions that match the query
+    const transactions = await Transaction.find(query);
+
+    res.status(200).json({ transactions });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
