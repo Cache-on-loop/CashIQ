@@ -11,7 +11,7 @@ import {getTransactions,addTransactions,updateTransactions,updateCategoryTransac
  //Transaction Routes
 
  router.post("/transactions/add",addTransactions);
- router.post("/transactions/update",updateTransactions);
- router.post("/transactions/category",updateCategoryTransactions);
+ router.post("/transactions/update/:transactionId",updateTransactions);
+ router.post("/transactions/update/category/:transactionId",updateCategoryTransactions);
  router.get("/geography",getGeography);
  export default router;

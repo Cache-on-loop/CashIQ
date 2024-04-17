@@ -49,16 +49,16 @@ export const getTransactions = async (req, res) => {
     const { userId } = req.params;
 
     // Find transactions by user ID
-    const transactions = await Transaction.find({ userId });
+    let transactions = await Transaction.find({ userId });
     const noneCategoryTransactions = transactions.filter(transaction => transaction.category === "None");
     const otherCategoryTransactions = transactions.filter(transaction => transaction.category !== "None");
     transactions = [...noneCategoryTransactions, ...otherCategoryTransactions];
+
     res.status(200).json({
       transactions,
-      total,
     });
 
-    res.status(200).json({ transactions });
+   
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
@@ -68,7 +68,7 @@ export const getTransactions = async (req, res) => {
 
 export const addTransactions = async (req, res) => {
   try {
-    const { userId, cardId, transactionName, vendor, category, amount } = req.body;
+    const { userId, cardId, transactionName, vendor, category,date,amount } = req.body;
 
     // Create a new transaction instance
     const newTransaction = new Transaction({
@@ -77,6 +77,7 @@ export const addTransactions = async (req, res) => {
       transactionName,
       vendor,
       category,
+      date,
       amount
     });
 
@@ -91,17 +92,19 @@ export const addTransactions = async (req, res) => {
 
 export const updateTransactions = async (req, res) => {
   try {
-    const { id } = req.params; // Get the transaction ID from the request parameters
-    const { userId, cardId, transactionName, vendor, category, amount } = req.body; // Get the updated transaction details from the request body
-
+    const { transactionId } = req.params; // Get the transaction ID from the request parameters
+    const _id=transactionId;
+    const { userId, cardId, transactionName, vendor, category, date, amount } = req.body; // Get the updated transaction details from the request body
+    
     // Find the transaction by ID and update its fields
-    const updatedTransaction = await Transaction.findByIdAndUpdate(id, {
+    const updatedTransaction = await Transaction.findByIdAndUpdate({_id},{
       userId: new mongoose.Types.ObjectId(userId),
       cardId: new mongoose.Types.ObjectId(cardId),
       transactionName,
       vendor,
       category,
-      amount
+      amount,
+      date
     }, { new: true });
 
     if (!updatedTransaction) {
@@ -116,11 +119,15 @@ export const updateTransactions = async (req, res) => {
 
 export const updateCategoryTransactions = async (req, res) => {
   try {
-    const { id } = req.params; // Get the transaction ID from the request parameters
+    const { transactionId } = req.params;
+    console.log(transactionId)
+    const _id = transactionId;
+   
+     // Get the transaction ID from the request parameters
     const { category } = req.body; // Get the updated category from the request body
 
     // Find the transaction by ID and update its category
-    const updatedTransaction = await Transaction.findByIdAndUpdate(id, { category }, { new: true });
+    const updatedTransaction = await Transaction.findByIdAndUpdate({_id}, { category }, { new: true });
 
     if (!updatedTransaction) {
       return res.status(404).json({ message: "Transaction not found" });
