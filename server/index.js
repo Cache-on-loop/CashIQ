@@ -14,10 +14,13 @@ import salesRoutes from "./routes/sales.js";
 
 import Product from "./models/Product.js";
 import ProductStat from"./models/ProductStat.js";
-import {dataUser,dataProduct, dataProductStat,dataTransaction,dataOverallStat,dataAffiliateStat} from "./data/index.js";
+import {data} from "./data/index.js";
 import Transaction from "./models/Transaction.js";
 import OverallStat from "./models/OverallStat.js";
 import AffiliateStat from "./models/AffiliateStat.js";
+import User from "./models/User.js";
+import Amex from "./models/Cards.js"; // Adjust the path as needed
+
 
 /*CONFIGURATION*/
 
@@ -49,7 +52,22 @@ mongoose.connect("mongodb+srv://dummyuser:Abc123456789@dashboard.8f4vjpd.mongodb
     //Product.insertMany(dataProduct);
     //ProductStat.insertMany
     //(dataProductStat);
-    //Transaction.insertMany(dataTransaction);
+    //User.insertMany(data);
+    //Amex.insertMany(data);
     //OverallStat.insertMany(dataOverallStat);
     //AffiliateStat.insertMany(dataAffiliateStat);
+    /*
+Transaction.collection.drop((error, result) => {
+  if (error) {
+    console.error("Error dropping collection:", error);
+  } else {
+    console.log("Collection dropped successfully:", result);
+    Transaction.insertMany(data).then(()=>{
+        console.log("Added Successfully.")
+    })
+  }
+});
+    
+*/
+
 }).catch((error)=>console.log(`${error} did not connect`));
