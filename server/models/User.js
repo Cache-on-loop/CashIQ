@@ -1,8 +1,16 @@
 import mongoose from "mongoose";
+import Transaction from "./Transaction.js";
+import Amex from "./Cards.js";
 
 const UserSchema = new mongoose.Schema(
-  {
-    name: {
+  { 
+    firstName: {
+      type: String,
+      required: true,
+      min: 2,
+      max: 100,
+    },
+    lastName: {
       type: String,
       required: true,
       min: 2,
@@ -22,17 +30,41 @@ const UserSchema = new mongoose.Schema(
     city: String,
     state: String,
     country: String,
-    occupation: String,
     phoneNumber: String,
-    transactions: Array,
-    role: {
+    profilePicture: {
       type: String,
-      enum: ["user", "admin", "superadmin"],
-      default: "admin",
+      required: false,
+    },
+    occupation: String,
+    dailySpendingCap: {
+      type: Number,
+      default: -1,
+    },
+    monthlySpendingCap: {
+      type: Number,
+      default: -1,
+    },
+    yearlySpendingCap: {
+      type: Number,
+      default: -1,
+    },
+    monthlyEarning: {
+      type: Number,
+      default: -1,
+    },
+    monthlySavingGoals: {
+      type: Number,
+      default: -1,
+    },
+    yearlySavingGoals: {
+      type: Number,
+      default: -1,
     },
   },
   { timestamps: true }
 );
 
+
+
 const User = mongoose.model("User", UserSchema);
-export default User;
+export default User; 
