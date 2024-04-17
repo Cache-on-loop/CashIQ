@@ -160,3 +160,19 @@ export const getTotalAmountByCategory = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const searchTransactionsByField = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { field, value } = req.query;
+
+    if (!field || !value) {
+      return res.status(400).json({ message: 'Field and value parameters are required' });
+    }
+    const transactions = await Transaction.find({ userId, [field]: value });
+    res.status(200).json(transactions);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
