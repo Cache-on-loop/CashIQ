@@ -14,7 +14,7 @@ const Transactions = () => {
   const theme = useTheme();
   const [selectDate, setSelectedDate] = useState(new Date());
   const [amount , setAmount] = useState(0);
-  const [category , setCategory] = useState("Select Category");
+  const [category , setCategory] = useState("None");
   const [vendor, setVendor] = useState("");
   const [cardId, setCardId] = useState("");
   const [userdata , ] = useState(JSON.parse(localStorage.getItem('User')));
@@ -209,20 +209,22 @@ const Transactions = () => {
               />
               <Select
                 label="Category"
-                value={category || "Select Category"}
+                value={category || "None"}
                 onChange={(e) => setCategory(e.target.value)}
                 variant="outlined"
                 fullWidth
                
                 
               >
-                <MenuItem value="Select Category" disabled>-Select Category-</MenuItem>
+                <MenuItem value="None" disabled>-Select Category-</MenuItem>
                 <MenuItem value="Grocery">Grocery</MenuItem>
-                <MenuItem value="Vehicle">Vehicle</MenuItem>
+                <MenuItem value="Transportation">Transportation</MenuItem>
                 <MenuItem value="Shopping">Shopping</MenuItem>
-                <MenuItem value="Travel">Travel</MenuItem>
-                <MenuItem value="Food">Food</MenuItem>
-                <MenuItem value="Fun">Fun</MenuItem>
+                <MenuItem value="Trip">Trip</MenuItem>
+                <MenuItem value="Health">Health</MenuItem>
+                <MenuItem value="Entertainment">Entertainment and Food</MenuItem>
+                <MenuItem value="Bills">Housing and Bills</MenuItem>
+                <MenuItem value="Savings">Investments and Savings</MenuItem>
                 <MenuItem value="Other">Other</MenuItem>
               </Select>
               <TextField
