@@ -52,13 +52,13 @@ const Dashboard = () => {
       headerName: "# of Products",
       flex: 0.5,
       sortable: false,
-      renderCell: (params) => params.value.length,
+      renderCell: (params) => 2,
     },
     {
       field: "cost",
       headerName: "Cost",
       flex: 1,
-      renderCell: (params) => `$${Number(params.value).toFixed(2)}`,
+      renderCell: (params) => `$${Number(20).toFixed(2)}`,
     },
   ];
 
