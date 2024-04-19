@@ -1,47 +1,79 @@
-import React, { useMemo } from "react";
-import { Box, useTheme } from "@mui/material";
+import React, { useMemo, useState } from "react";
+import { Box, useTheme, Select, MenuItem } from "@mui/material";
 import Header from "components/Header";
 import { ResponsiveLine } from "@nivo/line";
-import { useGetSalesQuery } from "state/api";
+import { useGetMonthlyQuery } from "state/api";
 
 const Monthly = () => {
-  const { data } = useGetSalesQuery();
   const theme = useTheme();
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const { data } = useGetMonthlyQuery({ userId: "661b0357d1e7a45088b26b1d", year: selectedYear }); // Replace "userId" with the actual userId
+
+  const handleYearChange = (event) => {
+    setSelectedYear(event.target.value);
+  };
 
   const [formattedData] = useMemo(() => {
-    if (!data) return [];
+    if (!data || !data.monthlySavings) return [];
 
-    const { monthlyData } = data;
-    const totalSalesLine = {
-      id: "totalSales",
+    const { monthlySavings, monthlySpendingCap } = data;
+    const totalAmountLine = {
+      id: "Monthly Expenditure",
       color: theme.palette.secondary.main,
       data: [],
     };
-    const totalUnitsLine = {
-      id: "totalUnits",
+    const monthlySavingLine = {
+      id: "Monthly Saving",
       color: theme.palette.secondary[600],
       data: [],
     };
 
-    Object.values(monthlyData).forEach(({ month, totalSales, totalUnits }) => {
-      totalSalesLine.data = [
-        ...totalSalesLine.data,
-        { x: month, y: totalSales },
+    monthlySavings.forEach(({ month, totalAmount, monthlySaving }) => {
+      const lineColor = totalAmount > monthlySpendingCap ? "red" : theme.palette.secondary.main;
+      totalAmountLine.data = [
+        ...totalAmountLine.data,
+        { x: month, y: totalAmount },
       ];
-      totalUnitsLine.data = [
-        ...totalUnitsLine.data,
-        { x: month, y: totalUnits },
+      monthlySavingLine.data = [
+        ...monthlySavingLine.data,
+        { x: month, y: monthlySaving },
       ];
     });
 
-    const formattedData = [totalSalesLine, totalUnitsLine];
+    // Add a red horizontal line at the monthly saving cap
+    const redLine = {
+      id: "Monthly Saving Cap",
+      color: "red",
+      data: [{ x: monthlySavings[0].month, y: monthlySpendingCap }, { x: monthlySavings[monthlySavings.length - 1].month, y: monthlySpendingCap }]
+    };
+
+    const formattedData = [totalAmountLine, monthlySavingLine, redLine];
     return [formattedData];
-  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data, theme.palette.secondary.main, theme.palette.secondary[600], theme.palette.primary.main]);
 
   return (
     <Box m="1.5rem 2.5rem">
-      <Header title="MONTHLY SALES" subtitle="Chart of monthlysales" />
-      <Box height="75vh">
+      <Header title="MONTHLY SALES" subtitle="Chart of monthly sales" />
+      <Box display="flex" alignItems="center" mb={2}>
+        <Select
+          value={selectedYear}
+          onChange={handleYearChange}
+          variant="outlined"
+          sx={{ marginRight: "1rem" }}
+        >
+          {/* Provide options based on available years */}
+          {Array.from({ length: 10 }, (_, i) => {
+            const yearOption = currentYear - i;
+            return (
+              <MenuItem key={i} value={yearOption}>
+                {yearOption}
+              </MenuItem>
+            );
+          })}
+        </Select>
+      </Box>
+      <Box height="75vh" position="relative">
         {data ? (
           <ResponsiveLine
             data={formattedData}
@@ -89,7 +121,6 @@ const Monthly = () => {
               reverse: false,
             }}
             yFormat=" >-.2f"
-            // curve="catmullRom"
             axisTop={null}
             axisRight={null}
             axisBottom={{
@@ -124,11 +155,11 @@ const Monthly = () => {
                 direction: "column",
                 justify: false,
                 translateX: 50,
-                translateY: 0,
+                translateY: 9,
                 itemsSpacing: 0,
                 itemDirection: "left-to-right",
-                itemWidth: 80,
-                itemHeight: 20,
+                itemWidth: 150,
+                itemHeight: 30,
                 itemOpacity: 0.75,
                 symbolSize: 12,
                 symbolShape: "circle",

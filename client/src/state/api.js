@@ -10,6 +10,7 @@ export const api = createApi({
     "Customers",
     "Transactions",
     "Summary",
+    "Monthly",
     "Add",
     "Geography",
     "Sales",
@@ -45,6 +46,14 @@ export const api = createApi({
         params: { type,value },
       }),
       providesTags: ["Summary"],
+    }),
+    getMonthly: build.query({
+      query: ({ userId,year }) => ({
+        url: `client/transactions/monthly/${userId}`,
+        method: "GET",
+        params: { year },
+      }),
+      providesTags: ["Monthly"],
     }),
     AddTransaction: build.mutation({
       query: ({ userId, cardId, transactionId, vendor, category, date, amount }) => ({
@@ -87,6 +96,7 @@ export const {
   useGetCustomersQuery,
   useGetTransactionsQuery,
   useGetTransactionsSummaryQuery,
+  useGetMonthlyQuery,
   useAddTransactionMutation,
   useGetGeographyQuery,
   useGetSalesQuery,

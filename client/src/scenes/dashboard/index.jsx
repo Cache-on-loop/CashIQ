@@ -201,14 +201,7 @@ const Dashboard = () => {
             Sales By Category
           </Typography>
           <BreakdownChart isDashboard={true} />
-          <Typography
-            p="0 0.6rem"
-            fontSize="0.8rem"
-            sx={{ color: theme.palette.secondary[200] }}
-          >
-            Breakdown of real states and information via category for revenue
-            made for this year and total sales.
-          </Typography>
+          
         </Box>
       </Box>
     </Box>
