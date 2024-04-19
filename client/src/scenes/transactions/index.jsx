@@ -1,7 +1,9 @@
-import React, { useState, useRef,useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Box, useTheme, Button, Modal, TextField, Select, MenuItem } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useGetTransactionsQuery,useAddTransactionMutation } from "state/api";
+import { Edit } from '@mui/icons-material'; // Import the Edit icon
+import IconButton from '@mui/material/IconButton'; // Import IconButton component
+import { useGetTransactionsQuery, useAddTransactionMutation } from "state/api";
 import Header from "components/Header";
 import DataGridCustomToolbar from "components/DataGridCustomToolbar";
 import DatePicker from "react-datepicker";
@@ -10,15 +12,16 @@ import { useNavigate } from 'react-router-dom';
 
 const Transactions = () => {
   const addTransactionMutation = useAddTransactionMutation();
-  
+
   const theme = useTheme();
   const [selectDate, setSelectedDate] = useState(new Date());
-  const [amount , setAmount] = useState(0);
-  const [category , setCategory] = useState("Select Category");
+  const [amount, setAmount] = useState(0);
+  const [category, setCategory] = useState("Select Category");
   const [vendor, setVendor] = useState("");
   const [cardId, setCardId] = useState("");
-  const [userdata , ] = useState(JSON.parse(localStorage.getItem('User')));
+  const [userdata,] = useState(JSON.parse(localStorage.getItem('User')));
   const [openModal, setOpenModal] = useState(false);
+  const [editedTransaction, setEditedTransaction] = useState(null);
   const ref = useRef(null);
 
   // Values to be sent to the backend
@@ -78,42 +81,65 @@ const Transactions = () => {
       flex: 1,
       valueGetter: (params) => new Date(params.value).toLocaleDateString(),
     },
+    {
+      field: "edit",
+      headerName: "Edit",
+      flex: 1,
+      renderCell: (params) => (
+        <IconButton onClick={() => handleEditTransaction(params.row)}>
+          <Edit />
+        </IconButton>
+      ),
+    },
   ];
+  const handleEditTransaction = (transaction) => {
+    setEditedTransaction(transaction); // Set the edited transaction
+    setAmount(transaction.amount);
+    setCategory(transaction.category);
+    setVendor(transaction.vendor);
+    setCardId(transaction.cardId);
+    setSelectedDate(new Date(transaction.date));
+
+    setOpenModal(true);
+  };
+
   const handleCreateTransaction = () => {
-    const newTransaction = {
-      userId:"661b0357d1e7a45088b26b1d",
+    const transactionData = {
+      userId: "661b0357d1e7a45088b26b1d",
       cardId,
-      transactionName:'xyz', // Fill with appropriate transaction ID
+      transactionName: 'xyz', // Fill with appropriate transaction ID
       vendor,
       category,
-      date:selectDate,
+      date: selectDate,
       amount
     };
-    
-    // Calling the mutation function
-    fetch('http://localhost:5001/client/transactions/add', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(newTransaction),
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Failed to add transaction');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log('Transaction added successfully:', data);
-    setOpenModal(false);
-  })
-  .catch(error => {
-    console.error('Error adding transaction:', error);
-  });
-};
 
-  
+    const url = editedTransaction ? `http://localhost:5001/client/transactions/update/${editedTransaction._id}` : 'http://localhost:5001/client/transactions/add';
+    // Calling the mutation function
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(transactionData),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to save transaction');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Transaction saved successfully:', data);
+        setOpenModal(false);
+        setEditedTransaction(null);
+      })
+      .catch(error => {
+        console.error('Error saving transaction:', error);
+      });
+  };
+
+
 
   return (
     <Box m="1.5rem 2.5rem" position="relative">
@@ -175,8 +201,11 @@ const Transactions = () => {
           Create Transaction
         </Button>
         <Modal
-          open={openModal}
-          onClose={() => setOpenModal(false)}
+          open={openModal || !!editedTransaction}
+          onClose={() => {
+            setOpenModal(false);
+            setEditedTransaction(null); // Reset edited transaction state
+          }}
           aria-labelledby="create-transaction-modal"
         >
           <Box
@@ -195,8 +224,12 @@ const Transactions = () => {
               outline: 'none', // Remove default outline
             }}
           >
-            <h2 className="font-bold text-xl text-center mb-2">Create Transaction</h2>
-    <br /> {/* Line break */}
+            {editedTransaction ? (
+              <h2 className="font-bold text-xl text-center mb-2">Edit Transaction</h2>
+            ) : (
+              <h2 className="font-bold text-xl text-center mb-2">Create Transaction</h2>
+            )}
+            <br /> {/* Line break */}
             <div className="flex flex-col gap-6">
               <TextField
                 type="number"
@@ -205,7 +238,7 @@ const Transactions = () => {
                 onChange={(e) => setAmount(e.target.value)}
                 variant="outlined"
                 fullWidth
-               
+
               />
               <Select
                 label="Category"
@@ -213,8 +246,8 @@ const Transactions = () => {
                 onChange={(e) => setCategory(e.target.value)}
                 variant="outlined"
                 fullWidth
-               
-                
+
+
               >
                 <MenuItem value="Select Category" disabled>-Select Category-</MenuItem>
                 <MenuItem value="Grocery">Grocery</MenuItem>
@@ -231,7 +264,7 @@ const Transactions = () => {
                 onChange={(e) => setVendor(e.target.value)}
                 variant="outlined"
                 fullWidth
-               
+
               />
               <TextField
                 label="Card ID"
@@ -239,7 +272,7 @@ const Transactions = () => {
                 onChange={(e) => setCardId(e.target.value)}
                 variant="outlined"
                 fullWidth
-                
+
               />
               <div className="w-full">
                 <DatePicker
@@ -251,14 +284,18 @@ const Transactions = () => {
                 />
               </div>
               <div className="flex justify-end mt-auto"> {/* Adjusted alignment */}
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleCreateTransaction}
-              >
-                Create
-              </Button>
-            </div>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleCreateTransaction}
+                >
+                  {editedTransaction ? (
+                    <>Save</>
+                  ) : (
+                    <>Create</>
+                  )}
+                </Button>
+              </div>
             </div>
           </Box>
         </Modal>
