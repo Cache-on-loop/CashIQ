@@ -144,8 +144,11 @@ export const getSummary = async (req, res) => {
   try {
     const { userId } = req.params;
     const { type, value } = req.query;
+    let totalAmount = 0; 
     if (!type && !value) {
-      return getTotalAmountByCategory(req, res);
+      const totalByCategory = await getTotalAmountByCategory(req, res); 
+      totalAmount = totalByCategory.reduce((acc, { amount }) => acc + amount, 0);
+      return res.status(200).json({ summary: totalByCategory, totalAmount });
     }
 
     // Validate the type parameter (assuming it can only be 'monthly', 'yearly', or 'daily')
@@ -182,10 +185,11 @@ export const getSummary = async (req, res) => {
     const summary = transactions.reduce((acc, transaction) => {
       const { category, amount } = transaction;
       acc[category] = (acc[category] || 0) + amount;
+      totalAmount += amount;
       return acc;
     }, {});
 
-    res.status(200).json({ summary });
+    res.status(200).json({ summary, totalAmount });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

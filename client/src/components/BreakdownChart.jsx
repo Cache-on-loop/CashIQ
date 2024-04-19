@@ -1,28 +1,48 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ResponsivePie } from "@nivo/pie";
-import { Box, Typography, useTheme } from "@mui/material";
-import { useGetSalesQuery } from "state/api";
+import { Box, Typography, useTheme, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { useGetTransactionsSummaryQuery } from "state/api";
 
 const BreakdownChart = ({ isDashboard = false }) => {
-  const { data, isLoading } = useGetSalesQuery();
+  const [summaryType, setSummaryType] = useState("yearly");
+  const [summaryValue, setSummaryValue] = useState(new Date().getFullYear().toString());
   const theme = useTheme();
+  const { data, isLoading } = useGetTransactionsSummaryQuery({  userId: "661b0357d1e7a45088b26b1d",type: summaryType, value: summaryValue });
+
+  useEffect(() => {
+    // Fetch data based on summaryType and summaryValue
+    // This logic runs whenever summaryType or summaryValue changes
+    // No need to call a separate fetchData function
+  }, [summaryType, summaryValue]);
+
+  const handleTypeChange = (event) => {
+    setSummaryType(event.target.value);
+  };
+
+  const handleValueChange = (event) => {
+    setSummaryValue(event.target.value);
+  };
 
   if (!data || isLoading) return "Loading...";
 
   const colors = [
     theme.palette.secondary[500],
     theme.palette.secondary[300],
-    theme.palette.secondary[300],
-    theme.palette.secondary[500],
+    theme.palette.secondary[100],
+    theme.palette.secondary[200],
+    theme.palette.secondary[400],
+    theme.palette.secondary[600],
+    theme.palette.secondary[700],
+    theme.palette.secondary[800],
+    theme.palette.secondary[900],
   ];
-  const formattedData = Object.entries(data.salesByCategory).map(
-    ([category, sales], i) => ({
-      id: category,
-      label: category,
-      value: sales,
-      color: colors[i],
-    })
-  );
+  
+  const formattedData = Object.entries(data.summary).map(([category, sales], i) => ({
+    id: category,
+    label: category,
+    value: sales,
+    color: colors[i % colors.length],
+  }));
 
   return (
     <Box
@@ -32,8 +52,57 @@ const BreakdownChart = ({ isDashboard = false }) => {
       minWidth={isDashboard ? "325px" : undefined}
       position="relative"
     >
+      <FormControl fullWidth variant="outlined" sx={{ marginBottom: "1rem" }}>
+        <InputLabel id="summary-type-label">Summary Type</InputLabel>
+        <Select
+          labelId="summary-type-label"
+          id="summary-type"
+          value={summaryType}
+          onChange={handleTypeChange}
+          label="Summary Type"
+        >
+          <MenuItem value="monthly">Monthly</MenuItem>
+          <MenuItem value="yearly">Yearly</MenuItem>
+          <MenuItem value="daily">Daily</MenuItem>
+        </Select>
+      </FormControl>
+      {summaryType !== "daily" && (
+        <FormControl fullWidth variant="outlined" sx={{ marginBottom: "1rem" }}>
+          <InputLabel id="summary-value-label">Summary Value</InputLabel>
+          <Select
+            labelId="summary-value-label"
+            id="summary-value"
+            value={summaryValue}
+            onChange={handleValueChange}
+            label="Summary Value"
+          >
+            {/* Provide options based on summaryType */}
+            {summaryType === "monthly" && (
+              Array.from({ length: 12 }, (_, i) => {
+                const month = new Date(new Date().getFullYear(), i, 1);
+                return (
+                  <MenuItem key={i} value={month.toISOString()}>
+                    {month.toLocaleString("default", { month: "long" })}
+                  </MenuItem>
+                );
+              })
+            )}
+            {summaryType === "yearly" && (
+              Array.from({ length: 5 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return (
+                  <MenuItem key={i} value={year.toString()}>
+                    {year}
+                  </MenuItem>
+                );
+              })
+            )}
+          </Select>
+        </FormControl>
+      )}
       <ResponsivePie
         data={formattedData}
+        // Other props remain unchanged
         theme={{
           axis: {
             domain: {
@@ -76,12 +145,13 @@ const BreakdownChart = ({ isDashboard = false }) => {
         sortByValue={true}
         innerRadius={0.45}
         activeOuterRadiusOffset={8}
-        borderWidth={1}
-        borderColor={{
-          from: "color",
-          modifiers: [["darker", 0.2]],
-        }}
-        enableArcLinkLabels={!isDashboard}
+        // Remove borders
+  enableSliceLabels={false} // Enable slice labels
+  
+  enableRadialLabels={false} 
+ 
+        
+        enableArcLinkLabels={false}
         arcLinkLabelsTextColor={theme.palette.secondary[200]}
         arcLinkLabelsThickness={2}
         arcLinkLabelsColor={{ from: "color" }}
@@ -98,23 +168,17 @@ const BreakdownChart = ({ isDashboard = false }) => {
             translateX: isDashboard ? 20 : 0,
             translateY: isDashboard ? 50 : 56,
             itemsSpacing: 0,
-            itemWidth: 85,
+            itemWidth: 100,
             itemHeight: 18,
             itemTextColor: "#999",
             itemDirection: "left-to-right",
             itemOpacity: 1,
             symbolSize: 18,
             symbolShape: "circle",
-            effects: [
-              {
-                on: "hover",
-                style: {
-                  itemTextColor: theme.palette.primary[500],
-                },
-              },
-            ],
+           
           },
         ]}
+      
       />
       <Box
         position="absolute"
@@ -124,14 +188,24 @@ const BreakdownChart = ({ isDashboard = false }) => {
         textAlign="center"
         pointerEvents="none"
         sx={{
-          transform: isDashboard
-            ? "translate(-75%, -170%)"
-            : "translate(-50%, -100%)",
+          transform: isDashboard ? "translate(-75%, -170%)" : "translate(-50%, -100%)",
         }}
       >
-        <Typography variant="h6">
-          {!isDashboard && "Total:"} ${data.yearlySalesTotal}
-        </Typography>
+      <Box
+  position="absolute"
+  top="95px"
+  left="-30px"
+  transform="translate(-50%, -50%)"
+  color={theme.palette.secondary[400]}
+  textAlign="center"
+  pointerEvents="none"
+>
+  <Typography variant="h6">
+    {!isDashboard && "Total:"} ${data.totalAmount}
+  </Typography>
+</Box>
+  
+      
       </Box>
     </Box>
   );

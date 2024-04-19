@@ -9,6 +9,7 @@ export const api = createApi({
     "Products",
     "Customers",
     "Transactions",
+    "Summary",
     "Add",
     "Geography",
     "Sales",
@@ -36,6 +37,14 @@ export const api = createApi({
         params: { page, pageSize, sort, search },
       }),
       providesTags: ["Transactions"],
+    }),
+    getTransactionsSummary: build.query({
+      query: ({ userId,type,value }) => ({
+        url: `client/transactions/breakdown/${userId}`,
+        method: "GET",
+        params: { type,value },
+      }),
+      providesTags: ["Summary"],
     }),
     AddTransaction: build.mutation({
       query: ({ userId, cardId, transactionId, vendor, category, date, amount }) => ({
@@ -77,6 +86,7 @@ export const {
   useGetProductsQuery,
   useGetCustomersQuery,
   useGetTransactionsQuery,
+  useGetTransactionsSummaryQuery,
   useAddTransactionMutation,
   useGetGeographyQuery,
   useGetSalesQuery,
