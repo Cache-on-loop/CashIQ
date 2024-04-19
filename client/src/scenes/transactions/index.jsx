@@ -1,7 +1,7 @@
 import React, { useState, useRef,useEffect } from "react";
 import { Box, useTheme, Button, Modal, TextField, Select, MenuItem } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useGetTransactionsQuery } from "state/api";
+import { useGetTransactionsQuery,useAddTransactionMutation } from "state/api";
 import Header from "components/Header";
 import DataGridCustomToolbar from "components/DataGridCustomToolbar";
 import DatePicker from "react-datepicker";
@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 // Import the Transaction schema
 
 const Transactions = () => {
+  const addTransactionMutation = useAddTransactionMutation();
+  
   const theme = useTheme();
   const [selectDate, setSelectedDate] = useState(new Date());
   const [amount , setAmount] = useState(0);
@@ -27,6 +29,7 @@ const Transactions = () => {
   const [searchInput, setSearchInput] = useState("");
 
   const { data, isLoading } = useGetTransactionsQuery({
+    userId: "661b0357d1e7a45088b26b1d",
     page,
     pageSize,
     sort: JSON.stringify(sort),
@@ -44,7 +47,7 @@ const Transactions = () => {
   }, [openModal]);
   const columns = [
     {
-      field: "transactionId",
+      field: "transactionName",
       headerName: "Transaction ID",
       flex: 1,
     },
@@ -76,24 +79,41 @@ const Transactions = () => {
       valueGetter: (params) => new Date(params.value).toLocaleDateString(),
     },
   ];
-
   const handleCreateTransaction = () => {
     const newTransaction = {
-      userId: userdata._id,
+      userId:"661b0357d1e7a45088b26b1d",
       cardId,
-      transactionId: '', // Fill with appropriate transaction ID
+      transactionName:'xyz', // Fill with appropriate transaction ID
       vendor,
       category,
-      date: selectDate,
+      date:selectDate,
       amount
     };
-    ref.current.staticStart();
-    // Save new transaction logic goes here
     
-    ref.current.complete();
-    setOpenModal(false); // Close the modal after creating the transaction
+    // Calling the mutation function
+    fetch('http://localhost:5001/client/transactions/add', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newTransaction),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to add transaction');
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Transaction added successfully:', data);
+    setOpenModal(false);
+  })
+  .catch(error => {
+    console.error('Error adding transaction:', error);
+  });
+};
 
-  };
+  
 
   return (
     <Box m="1.5rem 2.5rem" position="relative">
@@ -166,15 +186,18 @@ const Transactions = () => {
               left: '50%',
               transform: 'translate(-50%, -50%)',
               width: '500px',
-              height:'400px', // Adjusted width
+              height: 'auto', // Change height to 'auto' to allow the modal to adjust its height based on content
               bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
               borderRadius: '8px',
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)', // Add a subtle box shadow
+              padding: '24px', // Add padding for space inside the modal
+              border: '1px solid #e0e0e0', // Add a border
+              outline: 'none', // Remove default outline
             }}
           >
-            <div className="font-bold  mb-4 pb-2 gap-4  ">Create Transaction</div>
-            <div className="flex flex-col gap-4">
+            <h2 className="font-bold text-xl text-center mb-2">Create Transaction</h2>
+    <br /> {/* Line break */}
+            <div className="flex flex-col gap-6">
               <TextField
                 type="number"
                 label="Amount"
@@ -182,7 +205,7 @@ const Transactions = () => {
                 onChange={(e) => setAmount(e.target.value)}
                 variant="outlined"
                 fullWidth
-                className="mb-4"
+               
               />
               <Select
                 label="Category"
@@ -190,7 +213,7 @@ const Transactions = () => {
                 onChange={(e) => setCategory(e.target.value)}
                 variant="outlined"
                 fullWidth
-                className="mb-4"
+               
                 
               >
                 <MenuItem value="Select Category" disabled>-Select Category-</MenuItem>
@@ -208,7 +231,7 @@ const Transactions = () => {
                 onChange={(e) => setVendor(e.target.value)}
                 variant="outlined"
                 fullWidth
-                className="mb-4"
+               
               />
               <TextField
                 label="Card ID"
@@ -216,7 +239,7 @@ const Transactions = () => {
                 onChange={(e) => setCardId(e.target.value)}
                 variant="outlined"
                 fullWidth
-                className="mb-6"
+                
               />
               <div className="w-full">
                 <DatePicker
@@ -227,6 +250,7 @@ const Transactions = () => {
                   showYearDropdown
                 />
               </div>
+              <div className="flex justify-end mt-auto"> {/* Adjusted alignment */}
               <Button
                 variant="contained"
                 color="primary"
@@ -234,6 +258,7 @@ const Transactions = () => {
               >
                 Create
               </Button>
+            </div>
             </div>
           </Box>
         </Modal>
